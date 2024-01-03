@@ -8,6 +8,7 @@ import {
 	NextApiResponse,
 } from "next";
 
+//@ts-ignore
 export const authOptions: NextAuthOptions = {
 	providers: [
 		GoogleProvider({
@@ -39,6 +40,7 @@ export const authOptions: NextAuthOptions = {
 	session: {
 		strategy: "jwt",
 	},
+	//@ts-ignore
 	adapter: FirestoreAdapter(adminDb),
 } satisfies NextAuthOptions;
 
