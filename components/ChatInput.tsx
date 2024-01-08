@@ -87,6 +87,7 @@ function ChatInput({ chatId }: { chatId: string }) {
 			name: session.user.name!,
 			email: session.user.email!,
 			image: session.user.image || "",
+			role: session.user.role!,
 		};
 
 		addDoc(messagesRef(chatId), {

@@ -16,6 +16,7 @@ async function syncFirebaseAuth(session: Session) {
 	} else {
 		auth.signOut();
 	}
+	// console.log("SESSION(FirebaseAuthProvider.tsx): ", session);
 }
 
 export default function FirebaseAuthProvider({

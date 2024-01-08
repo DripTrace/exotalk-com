@@ -10,7 +10,7 @@ function UpgradeBanner() {
 	const isPro = subscription?.status === "active";
 	const router = useRouter();
 
-	console.log(subscription);
+	// console.log(subscription);
 
 	if (subscription === undefined || isPro) return null;
 
