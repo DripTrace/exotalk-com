@@ -42,7 +42,7 @@ const subscriptionConverter: FirestoreDataConverter<Subscription> = {
 			ended_at: data.ended_at,
 			trial_start: data.trial_start,
 			trial_end: data.trial_end,
-			role: data.role,
+			// role: data.role,
 		};
 
 		return sub;

@@ -6,16 +6,24 @@ import {
 	addDoc,
 	where,
 	serverTimestamp,
+	doc,
+	getDoc,
+	setDoc,
+	updateDoc,
 } from "firebase/firestore";
 import { NextAuthOptions, getServerSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { adminAuth, adminDb } from "./firebase-admin";
+
+type firestoreDocument = Record<string, DocumentData>;
 
 import {
 	GetServerSidePropsContext,
 	NextApiRequest,
 	NextApiResponse,
 } from "next";
+import { db } from "./firebase";
+import { DocumentData } from "firebase-admin/firestore";
 
 const THIRTY_DAYS = 30 * 24 * 60 * 60;
 const THIRTY_MINUTES = 30 * 60;
@@ -30,45 +38,104 @@ export const authOptions: NextAuthOptions = {
 		}),
 	],
 	callbacks: {
+		jwt: async ({ user, token, trigger, account, profile, session }) => {
+			if (user) {
+				// console.log("jtwCallback: ", token);
+				// const authTokenQuery = query(
+				// 	collection(db, "users"),
+				// 	where("email", "==", token.email)
+				// );
+				// const authTokenSnapshot = await getDocs(authTokenQuery);
+				// const userCollection: Record<string, Object> = {};
+				// authTokenSnapshot.forEach((doc) => {
+				// 	const a = doc.data();
+				// 	a["_id"] = doc.id;
+				// 	userCollection[doc.id] = a;
+				// });
+				// const userToken: any = Object.values(userCollection)[0];
+				// console.log("userTokenDatabase: ", userToken);
+
+				token.sub = user.id;
+				token.trigger = trigger;
+				// token.account = account;
+				// token.profile = profile;
+			}
+
+			return token;
+		},
 		session: async ({ session, token }) => {
 			if (session?.user) {
 				if (token?.sub) {
 					session.user.id = token.sub;
 
+					const authTokenQuery = query(
+						collection(db, "users"),
+						where("email", "==", token.email)
+					);
+					const authTokenSnapshot = await getDocs(authTokenQuery);
+					let userCollection: firestoreDocument = {};
+					authTokenSnapshot.forEach((doc) => {
+						let a = doc.data();
+						a["_id"] = doc.id;
+						userCollection[doc.id] = a;
+					});
+
 					const firebaseToken = await adminAuth.createCustomToken(
 						token.sub
 					);
+					console.log(firebaseToken);
 					session.firebaseToken = firebaseToken;
 
 					if (token.trigger == "signUp") {
-						session.user.isNew = true;
-					} else {
-						session.user.isNew = false;
-					}
-				}
-				console.log("newUser: ", session.user.isNew);
-			}
-			// console.log("sessionCallback: ", session);
-			return session;
-		},
-		jwt: async ({ user, token, trigger, account, profile, session }) => {
-			if (user) {
-				token.sub = user.id;
-				token.trigger = trigger;
-				token.account = account;
-				token.profile = profile;
-				// undefined
-				// token.session = session;
-				// token.role = user.role;
-			}
-			console.log("userProfile: ", token.profile);
-			console.log("userAccount: ", token.account);
-			// undefined
-			// console.log("userSession: ", token.session);
-			console.log("userTrigger: ", token.trigger);
-			// console.log("jwtCallback: ", token);
+						// session.user.isNew = true;
 
-			return token;
+						// const userToken: firestoreDocument =
+						// 	Object.values(userCollection)[0];
+						// console.log("userTokenDatabase: ", userToken);
+
+						const userData = {
+							userRole: "standard",
+							availableLanguages: ["en"],
+							// timestamp: serverTimestamp(),
+						};
+						// const userDoc = doc(db, "users", session.user.id);
+						// await updateDoc(userDoc, userData);
+
+						await adminDb
+							.collection("users")
+							.doc(session.user.id)
+							.update(userData);
+
+						console.log(
+							`${session.user.id} is given the standard role`
+						);
+					} else {
+						// session.user.isNew = false;
+						console.log("returning user");
+					}
+					// session.user.availableLanguages =
+					// userCollection?.availableLanguages || ["en"]; // Default to English if not set
+					const userToken: firestoreDocument =
+						Object.values(userCollection)[0];
+					if (userToken) {
+						const { availableLanguages } = userToken;
+						session.user.availableLanguages =
+							availableLanguages as string[];
+						console.log(userToken);
+					}
+
+					// console.log(userToken);
+					// Query Firestore for the user's available languages
+					// const userRef = doc(adminDb, "users", session.user.id);
+					// const userDoc = await getDoc(userRef);
+					// if (user.exists()) {
+					// 	const userData = userDoc.data();
+					// 	session.user.availableLanguages =
+					// 		userData.availableLanguages || ["en"]; // Default to English if not set
+					// }
+				}
+			}
+			return session;
 		},
 		// signIn: async (user) => {
 		// 	return true;
@@ -76,6 +143,7 @@ export const authOptions: NextAuthOptions = {
 	},
 	pages: {
 		newUser: "/pricing",
+		// signIn: "/signin",
 	},
 	session: {
 		strategy: "jwt",

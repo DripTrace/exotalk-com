@@ -9,8 +9,9 @@ declare module "next-auth" {
 		user: {
 			/** The user's postal address. */
 			id?: string;
-			isNew?: boolean;
-			role?: string;
+			availableLanguages?: string[];
+			// isNew?: boolean;
+			// role?: string;
 		} & DefaultSession["user"];
 	}
 }

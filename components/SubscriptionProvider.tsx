@@ -24,6 +24,8 @@ export default function SubscriptionProvider({
 			subscriptionRef(session.user.id),
 			(snapshot) => {
 				if (snapshot.empty) {
+					console.log(session.user);
+					// console.log(snapshot.docs[0]);
 					console.log("No such document!");
 					setSubscription(null);
 				} else {

@@ -12,7 +12,37 @@ export type LanguagesSupported =
 	| "ru"
 	| "zh"
 	| "ar"
-	| "fil";
+	| "tl"
+	| "af"
+	| "sq"
+	| "am"
+	| "hy"
+	| "ceb"
+	| "as"
+	| "ay"
+	| "az"
+	| "bm"
+	| "eu"
+	| "be"
+	| "bn"
+	| "bho"
+	| "bs"
+	| "bg"
+	| "ca"
+	| "co"
+	| "hr"
+	| "cs"
+	| "da"
+	| "dv"
+	| "doi"
+	| "nl"
+	| "eo"
+	| "et"
+	| "ee"
+	| "fi"
+	| "fy"
+	| "gl"
+	| "ka";
 
 export const LanguagesSupportedMap: Record<LanguagesSupported, string> = {
 	en: "English",
@@ -25,8 +55,73 @@ export const LanguagesSupportedMap: Record<LanguagesSupported, string> = {
 	ru: "Russian",
 	zh: "Mandarin",
 	ar: "Arabic",
-	fil: "Filipino (Tagalog)",
+	tl: "Tagalog",
+	af: "Afrikaans",
+	sq: "Albanian",
+	am: "Amheric",
+	hy: "Armenian",
+	ceb: "Cebuano",
+	as: "Assamese",
+	ay: "Aymara",
+	az: "Azerbaijani",
+	bm: "Bambara",
+	eu: "Basque",
+	be: "Belarusian",
+	bn: "Bengali",
+	bho: "Bhojpuri",
+	bs: "Bosnian",
+	bg: "Bulgarian",
+	ca: "Catalan",
+	co: "Corsican",
+	hr: "Croatian",
+	cs: "Czech",
+	da: "Danish",
+	dv: "Dhivehi",
+	doi: "Dogri",
+	nl: "Dutch",
+	eo: "Estonian",
+	et: "Esperanto",
+	ee: "Ewe",
+	fi: "Finnish",
+	fy: "Frisian",
+	gl: "Galacian",
+	ka: "Georgian",
 };
+
+export type AvailableLanguagesState = {
+	availableLanguages: LanguagesSupported[];
+	userRole: "standard" | "pro";
+	addUserLanguage: (language: LanguagesSupported) => void;
+	initializeUserLanguages: (role: "standard" | "pro") => void;
+};
+
+export const useAvailableLanguagesStore = create<AvailableLanguagesState>(
+	(set) => ({
+		// Default state setup
+		availableLanguages: ["en"], // English by default for all users
+		userRole: "standard", // Default user role
+
+		// Function to add a user-selected language
+		addUserLanguage: (language) =>
+			set((state) => ({
+				availableLanguages: state.availableLanguages.includes(language)
+					? state.availableLanguages
+					: [...state.availableLanguages, language],
+			})),
+
+		// Initializes available languages based on the user role
+		initializeUserLanguages: (role) =>
+			set((state) => ({
+				userRole: role,
+				availableLanguages:
+					role === "pro"
+						? (Object.keys(
+								LanguagesSupportedMap
+						  ) as LanguagesSupported[])
+						: state.availableLanguages,
+			})),
+	})
+);
 
 interface LanguageState {
 	language: LanguagesSupported;
@@ -48,6 +143,8 @@ export const useLanguageStore = create<LanguageState>()((set, get) => ({
 			0,
 			2
 		) as LanguagesSupported[];
+
+		// If not pro, return only English and language of choice
 	},
 	getNotSupportedLanguages: (isPro: boolean) => {
 		if (isPro) return []; // No unsupported languages for "pro" users
@@ -74,3 +171,11 @@ export const useSubscriptionStore = create<SubscriptionState>()((set, get) => ({
 		return subscription.status === "active";
 	},
 }));
+
+// let availableLanguages: string[] = ["en"];
+// interface AvailableLanguages {
+//     language: LanguagesSupported;
+//     setAvailableLanguages: (language: LanguagesSupported) => void;
+//     getAvailableLanguages: (userRole: string) => LanguagesSupported[];
+//     getNotAvailableLanguages: (userRole: boolean) => LanguagesSupported[];
+// }

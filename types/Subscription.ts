@@ -13,7 +13,7 @@ export interface Subscription {
 		[name: string]: string;
 	};
 	stripeLink: string;
-	role: string | null;
+	// role: string | null;
 	quantity: number;
 	items: Stripe.SubscriptionItem[];
 	/**

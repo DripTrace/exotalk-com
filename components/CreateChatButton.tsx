@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { getDocs, serverTimestamp, setDoc } from "firebase/firestore";
 import {
 	addChatRef,
-	chatMembersCollectionGroupRef,
+	// chatMembersCollectionGroupRef,
 } from "@/lib/converters/ChatsMembers";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -13,15 +13,15 @@ import LoadingSpinner from "./loadingSpinner";
 import { v4 as uuidv4 } from "uuid";
 import { MessageSquarePlusIcon } from "lucide-react";
 import { useToast } from "./ui/use-toast";
-import { useSubscriptionStore } from "@/store/store";
-import { ToastAction } from "./ui/toast";
+// import { useSubscriptionStore } from "@/store/store";
+// import { ToastAction } from "./ui/toast";
 
 function CreateChatButton({ isLarge }: { isLarge?: boolean }) {
 	const { data: session } = useSession();
 	const router = useRouter();
 	const [loading, setLoading] = useState(false);
 	const { toast } = useToast();
-	const subscription = useSubscriptionStore((state) => state.subscription);
+	// const subscription = useSubscriptionStore((state) => state.subscription);
 	// console.log(subscription);
 
 	const createNewChat = async () => {
@@ -35,34 +35,34 @@ function CreateChatButton({ isLarge }: { isLarge?: boolean }) {
 		});
 
 		// We need to get the users current chats to check if they're about to exceed the PRO plan
-		const chats = (
-			await getDocs(chatMembersCollectionGroupRef(session.user.id))
-		).docs.map((doc) => doc.data());
+		// const chats = (
+		// 	await getDocs(chatMembersCollectionGroupRef(session.user.id))
+		// ).docs.map((doc) => doc.data());
 
 		// check if the user is about to exceed the PRO plan which is 3 chats
-		const isPro = subscription?.status === "active";
+		// const isPro = subscription?.status === "active";
 		//   subscription?.role === "pro" && subscription.status === "active";
 
-		if (!isPro && chats.length >= 3) {
-			toast({
-				title: "Free plan limit exceeded",
-				description:
-					"You've'exceeded the limit of chats for the FREE plan. Please upgrade to PRO to continue adding users to chats!",
-				variant: "destructive",
-				action: (
-					<ToastAction
-						altText="Upgrade"
-						onClick={() => router.push("/register")}
-					>
-						Upgrade to PRO
-					</ToastAction>
-				),
-			});
+		// if (!isPro && chats.length >= 3) {
+		// 	toast({
+		// 		title: "Free plan limit exceeded",
+		// 		description:
+		// 			"You've'exceeded the limit of chats for the FREE plan. Please upgrade to PRO to continue adding users to chats!",
+		// 		variant: "destructive",
+		// 		action: (
+		// 			<ToastAction
+		// 				altText="Upgrade"
+		// 				onClick={() => router.push("/register")}
+		// 			>
+		// 				Upgrade to PRO
+		// 			</ToastAction>
+		// 		),
+		// 	});
 
-			setLoading(false);
+		// 	setLoading(false);
 
-			return;
-		}
+		// 	return;
+		// }
 
 		const chatId = uuidv4();
 		await setDoc(addChatRef(chatId, session.user.id), {

@@ -20,10 +20,10 @@ import {
 	messagesRef,
 } from "@/lib/converters/Message";
 import { useSession } from "next-auth/react";
-import { useSubscriptionStore } from "@/store/store";
-import { useToast } from "./ui/use-toast";
-import { ToastAction } from "./ui/toast";
-import { useRouter } from "next/navigation";
+// import { useSubscriptionStore } from "@/store/store";
+// import { useToast } from "./ui/use-toast";
+// import { ToastAction } from "./ui/toast";
+// import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
 	input: z.string().max(1000),
@@ -38,9 +38,9 @@ function ChatInput({ chatId }: { chatId: string }) {
 	});
 
 	const { data: session } = useSession();
-	const subscription = useSubscriptionStore((state) => state.subscription);
-	const { toast } = useToast();
-	const router = useRouter();
+	// const subscription = useSubscriptionStore((state) => state.subscription);
+	// const { toast } = useToast();
+	// const router = useRouter();
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		if (values.input.length === 0) {
@@ -52,33 +52,33 @@ function ChatInput({ chatId }: { chatId: string }) {
 		}
 
 		// We need to get the users current chats to check if they're about to exceed the PRO plan
-		const messages = (await getDocs(limitedMessagesRef(chatId))).docs.map(
-			(doc) => doc.data()
-		).length;
+		// const messages = (await getDocs(limitedMessagesRef(chatId))).docs.map(
+		// 	(doc) => doc.data()
+		// ).length;
 
 		// check if the user is about to exceed the PRO plan which is 20 messages inside a chat
-		const isPro =
-			//   subscription?.role === "pro" && subscription.status === "active";
-			subscription?.status === "active";
+		// const isPro =
+		// 	//   subscription?.role === "pro" && subscription.status === "active";
+		// 	subscription?.status === "active";
 
-		if (!isPro && messages >= 20) {
-			toast({
-				title: "Free plan limit exceeded",
-				description:
-					"You've'exceeded the FREE plan limit of 20 messages per chat. Upgrade to PRO for unlimited chat messages!",
-				variant: "destructive",
-				action: (
-					<ToastAction
-						altText="Upgrade"
-						onClick={() => router.push("/register")}
-					>
-						Upgrade to PRO
-					</ToastAction>
-				),
-			});
+		// if (!isPro && messages >= 20) {
+		// 	toast({
+		// 		title: "Free plan limit exceeded",
+		// 		description:
+		// 			"You've'exceeded the FREE plan limit of 20 messages per chat. Upgrade to PRO for unlimited chat messages!",
+		// 		variant: "destructive",
+		// 		action: (
+		// 			<ToastAction
+		// 				altText="Upgrade"
+		// 				onClick={() => router.push("/register")}
+		// 			>
+		// 				Upgrade to PRO
+		// 			</ToastAction>
+		// 		),
+		// 	});
 
-			return;
-		}
+		// 	return;
+		// }
 
 		// -----------------------------
 
@@ -87,7 +87,7 @@ function ChatInput({ chatId }: { chatId: string }) {
 			name: session.user.name!,
 			email: session.user.email!,
 			image: session.user.image || "",
-			role: session.user.role!,
+			// role: session.user.role!,
 		};
 
 		addDoc(messagesRef(chatId), {
