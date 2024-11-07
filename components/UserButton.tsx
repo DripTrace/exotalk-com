@@ -21,7 +21,6 @@ import LoadingSpinner from "./loadingSpinner";
 
 function UserButton({ session }: { session: Session | null }) {
 	const subscription = useSubscriptionStore((state) => state.subscription);
-	// console.log("SESSION (UserButton.tsx): ", session);
 
 	// Session ...
 	if (!session)
