@@ -72,6 +72,8 @@ function CreateChatButton({ isLarge }: { isLarge?: boolean }) {
 			isAdmin: true,
 			chatId: chatId,
 			image: session.user.image || "",
+			memberCount: 1, // Add this field to track member count
+			maxMembers: 3, // Add this field to set maximum members
 		})
 			.then(() => {
 				toast({

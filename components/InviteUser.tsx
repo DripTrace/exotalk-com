@@ -22,7 +22,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import * as z from "zod";
-import { getDocs, serverTimestamp, setDoc } from "firebase/firestore";
+import {
+	getDocs,
+	serverTimestamp,
+	setDoc,
+	query,
+	where,
+} from "firebase/firestore";
 import { addChatRef, chatMembersRef } from "@/lib/converters/ChatsMembers";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -64,32 +70,19 @@ function InviteUser({ chatId }: { chatId: string }) {
 			description: "Please wait while we send the invite...",
 		});
 
-		// We need to get the users current chats to check if theyre about to exceed the PRO plan
+		// Get current number of users in chat
 		const noOfUsersInChat = (
 			await getDocs(chatMembersRef(chatId))
 		).docs.map((doc) => doc.data()).length;
 
-		// check if the user is about to exceed the PRO plan which is 3 chats
-		const isPro =
-			//   subscription?.role === "pro" && subscription.status === "active";
-			subscription?.status === "active";
-
-		if (!isPro && noOfUsersInChat >= 2) {
+		// Check if chat has reached maximum capacity (3 users)
+		if (noOfUsersInChat >= 3) {
 			toast({
-				title: "Free plan limit exceeded",
+				title: "Chat is full",
 				description:
-					"You have exceeded the limit of users in a single chat for the FREE plan. Please upgrade to PRO to continue adding users to chats!",
+					"This chat has reached its maximum capacity of 3 users.",
 				variant: "destructive",
-				action: (
-					<ToastAction
-						altText="Upgrade"
-						onClick={() => router.push("/register")}
-					>
-						Upgrade to PRO
-					</ToastAction>
-				),
 			});
-
 			return;
 		}
 
@@ -102,43 +95,53 @@ function InviteUser({ chatId }: { chatId: string }) {
 					"Please enter an email address of a registered user OR resend the invitation once they have signed up!",
 				variant: "destructive",
 			});
-
 			return;
-		} else {
-			const user = querySnapshot.docs[0].data();
-
-			await setDoc(addChatRef(chatId, user.id), {
-				userId: user.id!,
-				email: user.email!,
-				timestamp: serverTimestamp(),
-				chatId: chatId,
-				isAdmin: false,
-				image: user.image || "",
-			})
-				.then(() => {
-					setOpen(false);
-
-					toast({
-						title: "Added to chat",
-						description:
-							"The user has been added to the chat successfully!",
-						className: "bg-green-600 text-white",
-						duration: 3000,
-					});
-
-					setOpenInviteLink(true);
-				})
-				.catch(() => {
-					toast({
-						title: "Error",
-						description:
-							"Whoops... there was an error adding the user to the chat!",
-						variant: "destructive",
-					});
-
-					setOpen(false);
-				});
 		}
+
+		const user = querySnapshot.docs[0].data();
+
+		// Check if user is already in the chat
+		const isMemberSnapshot = await getDocs(
+			query(chatMembersRef(chatId), where("userId", "==", user.id))
+		);
+
+		if (!isMemberSnapshot.empty) {
+			toast({
+				title: "User already in chat",
+				description: "This user is already a member of this chat!",
+				variant: "destructive",
+			});
+			return;
+		}
+
+		await setDoc(addChatRef(chatId, user.id), {
+			userId: user.id!,
+			email: user.email!,
+			timestamp: serverTimestamp(),
+			chatId: chatId,
+			isAdmin: false,
+			image: user.image || "",
+		})
+			.then(() => {
+				setOpen(false);
+				toast({
+					title: "Added to chat",
+					description:
+						"The user has been added to the chat successfully!",
+					className: "bg-green-600 text-white",
+					duration: 3000,
+				});
+				setOpenInviteLink(true);
+			})
+			.catch(() => {
+				toast({
+					title: "Error",
+					description:
+						"Whoops... there was an error adding the user to the chat!",
+					variant: "destructive",
+				});
+				setOpen(false);
+			});
 
 		form.reset();
 	}

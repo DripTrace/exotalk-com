@@ -7,6 +7,7 @@ import {
 	collection,
 	collectionGroup,
 	doc,
+	getDocs,
 	query,
 	where,
 } from "firebase/firestore";
@@ -18,6 +19,8 @@ export interface ChatMembers {
 	isAdmin: boolean;
 	chatId: string;
 	image: string;
+	memberCount?: number; // Add this
+	maxMembers?: number; // Add this
 }
 
 export const chatMembersConverter: FirestoreDataConverter<ChatMembers> = {
@@ -69,3 +72,13 @@ export const chatMembersCollectionGroupRef = (userId: string) =>
 		collectionGroup(db, "members"),
 		where("userId", "==", userId)
 	).withConverter(chatMembersConverter);
+
+export async function getCurrentMemberCount(chatId: string) {
+	const membersSnapshot = await getDocs(chatMembersRef(chatId));
+	return membersSnapshot.size;
+}
+
+export async function canAddUserToChat(chatId: string) {
+	const currentCount = await getCurrentMemberCount(chatId);
+	return currentCount < 3;
+}

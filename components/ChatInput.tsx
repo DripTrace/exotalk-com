@@ -43,60 +43,38 @@ function ChatInput({ chatId }: { chatId: string }) {
 	// const router = useRouter();
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
-		if (values.input.length === 0) {
+		if (!values.input || values.input.length === 0) {
+			console.warn("Input is empty.");
 			return;
 		}
 
 		if (!session?.user) {
+			console.error("User is not authenticated.");
 			return;
 		}
-
-		// We need to get the users current chats to check if they're about to exceed the PRO plan
-		// const messages = (await getDocs(limitedMessagesRef(chatId))).docs.map(
-		// 	(doc) => doc.data()
-		// ).length;
-
-		// check if the user is about to exceed the PRO plan which is 20 messages inside a chat
-		// const isPro =
-		// 	//   subscription?.role === "pro" && subscription.status === "active";
-		// 	subscription?.status === "active";
-
-		// if (!isPro && messages >= 20) {
-		// 	toast({
-		// 		title: "Free plan limit exceeded",
-		// 		description:
-		// 			"You've'exceeded the FREE plan limit of 20 messages per chat. Upgrade to PRO for unlimited chat messages!",
-		// 		variant: "destructive",
-		// 		action: (
-		// 			<ToastAction
-		// 				altText="Upgrade"
-		// 				onClick={() => router.push("/register")}
-		// 			>
-		// 				Upgrade to PRO
-		// 			</ToastAction>
-		// 		),
-		// 	});
-
-		// 	return;
-		// }
-
-		// -----------------------------
 
 		const userToStore: User = {
 			id: session.user.id!,
 			name: session.user.name!,
 			email: session.user.email!,
 			image: session.user.image || "",
-			// role: session.user.role!,
 		};
 
-		addDoc(messagesRef(chatId), {
-			input: values.input,
-			timestamp: serverTimestamp(),
-			user: userToStore,
-		});
+		try {
+			console.log("Submitting message:", values.input);
+			console.log("User Data:", userToStore);
 
-		form.reset();
+			await addDoc(messagesRef(chatId), {
+				input: values.input,
+				timestamp: serverTimestamp(),
+				user: userToStore,
+			});
+
+			form.reset();
+			console.log("Message submitted successfully.");
+		} catch (error) {
+			console.error("Failed to submit message:", error);
+		}
 	}
 
 	return (

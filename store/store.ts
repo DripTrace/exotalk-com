@@ -21,28 +21,28 @@ export type LanguagesSupported =
 	| "as"
 	| "ay"
 	| "az"
-	| "bm"
-	| "eu"
-	| "be"
-	| "bn"
-	| "bho"
-	| "bs"
-	| "bg"
-	| "ca"
-	| "co"
-	| "hr"
-	| "cs"
-	| "da"
-	| "dv"
-	| "doi"
-	| "nl"
-	| "eo"
-	| "et"
-	| "ee"
-	| "fi"
-	| "fy"
-	| "gl"
-	| "ka";
+	| "bm";
+// | "eu"
+// | "be"
+// | "bn"
+// | "bho"
+// | "bs"
+// | "bg"
+// | "ca"
+// | "co"
+// | "hr"
+// | "cs"
+// | "da"
+// | "dv"
+// | "doi"
+// | "nl"
+// | "eo"
+// | "et"
+// | "ee"
+// | "fi"
+// | "fy"
+// | "gl"
+// | "ka";
 
 export const LanguagesSupportedMap: Record<LanguagesSupported, string> = {
 	en: "English",
@@ -65,27 +65,27 @@ export const LanguagesSupportedMap: Record<LanguagesSupported, string> = {
 	ay: "Aymara",
 	az: "Azerbaijani",
 	bm: "Bambara",
-	eu: "Basque",
-	be: "Belarusian",
-	bn: "Bengali",
-	bho: "Bhojpuri",
-	bs: "Bosnian",
-	bg: "Bulgarian",
-	ca: "Catalan",
-	co: "Corsican",
-	hr: "Croatian",
-	cs: "Czech",
-	da: "Danish",
-	dv: "Dhivehi",
-	doi: "Dogri",
-	nl: "Dutch",
-	eo: "Estonian",
-	et: "Esperanto",
-	ee: "Ewe",
-	fi: "Finnish",
-	fy: "Frisian",
-	gl: "Galacian",
-	ka: "Georgian",
+	// eu: "Basque",
+	// be: "Belarusian",
+	// bn: "Bengali",
+	// bho: "Bhojpuri",
+	// bs: "Bosnian",
+	// bg: "Bulgarian",
+	// ca: "Catalan",
+	// co: "Corsican",
+	// hr: "Croatian",
+	// cs: "Czech",
+	// da: "Danish",
+	// dv: "Dhivehi",
+	// doi: "Dogri",
+	// nl: "Dutch",
+	// eo: "Estonian",
+	// et: "Esperanto",
+	// ee: "Ewe",
+	// fi: "Finnish",
+	// fy: "Frisian",
+	// gl: "Galacian",
+	// ka: "Georgian",
 };
 
 export type AvailableLanguagesState = {
@@ -132,7 +132,11 @@ interface LanguageState {
 
 export const useLanguageStore = create<LanguageState>()((set, get) => ({
 	language: "en",
-	setLanguage: (language: LanguagesSupported) => set({ language }),
+	setLanguage: (language: LanguagesSupported) => {
+		set({ language });
+		// Optionally persist to localStorage
+		localStorage.setItem("selectedLanguage", language);
+	},
 	getLanguages: (isPro: boolean) => {
 		// If the user is pro, return all supported languages
 		if (isPro)

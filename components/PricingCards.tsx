@@ -12,21 +12,22 @@ const tiers = [
 		features: [
 			"Unlimited Chats!",
 			"Unlimited Chat Rooms!",
-			"2 Participant limit in Chat",
-			"Supports English & a 2nd language (You get to choose 1!)",
+			"3 Participant limit in Chat", // Updated this line
+			"Supports English & your choice of a second language",
 			"48-hour support response time",
 		],
 	},
 	{
 		name: "Pro",
 		id: "si_PIwRz5C2p21tcS",
+		// id: "price_1QIO36DUVJyr2u4g8uE3M7Wz",
 		href: "#",
-		priceMonthly: "$6.99",
+		priceMonthly: "$5.99",
 		description: "Unlock the Full Potential with Pro!",
 		features: [
 			"Everything in Starter",
 			"Unlimited Participants in Chats",
-			"Supports up to 135 unique languages!",
+			"Supports up to 20 unique languages! (more on the way)",
 			"Multimedia support in chats (coming soon)",
 			"1-hour, dedicated support response time",
 			"Early access to New Features",

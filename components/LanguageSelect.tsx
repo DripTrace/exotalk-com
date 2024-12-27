@@ -18,139 +18,132 @@ import LoadingSpinner from "./loadingSpinner";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ScrollArea } from "./ui/scroll-area";
-import { adminDb } from "@/firebase-admin";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { useSession } from "next-auth/react";
 import { db } from "@/firebase";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 function LanguageSelect() {
 	const { data: session } = useSession();
-	console.log(session);
 
-	// async function updateUserAvailableLanguages(
-	// 	userId: string,
-	// 	languages: string[]
-	// ) {
-	// 	const userRef = doc(db, "users", userId);
-	// 	await updateDoc(userRef, {
-	// 		availableLanguages: languages,
-	// 	});
-	// }
+	const [language, setLanguage] = useLanguageStore((state) => [
+		state.language,
+		state.setLanguage,
+	]);
 
-	const [language, setLanguage, getLanguages, getNotSupportedLanguages] =
-		useLanguageStore((state) => [
-			state.language,
-			state.setLanguage,
-			state.getLanguages,
-			state.getNotSupportedLanguages,
-		]);
-
-	const { addUserLanguage, availableLanguages } = useAvailableLanguagesStore(
-		(state) => ({
-			addUserLanguage: state.addUserLanguage,
-			availableLanguages: state.availableLanguages,
-		})
-	);
-
-	const handleLanguageSelection = async (language: LanguagesSupported) => {
-		// Update Zustand state
-		addUserLanguage(language);
-
-		// Update Firestore document for the user
-		if (session) {
-			const userRef = doc(db, "users", session.user.id as string); // Adjust to match your users collection path
-			try {
-				await updateDoc(userRef, {
-					availableLanguages: [...availableLanguages, language],
-				});
-				console.log(`adding ${language} to language selection`);
-			} catch (error) {
-				console.error(
-					"Failed to update user's available languages:",
-					error
-				);
-			}
-		}
-	};
+	const { addUserLanguage, availableLanguages } =
+		useAvailableLanguagesStore();
 
 	const subscription = useSubscriptionStore((state) => state.subscription);
-	console.log(subscription);
-	//   const isPro = subscription?.role === "pro";
 	const isPro = subscription?.status === "active";
+
+	// Load user's language settings on mount
+	useEffect(() => {
+		const loadUserLanguages = async () => {
+			if (!session?.user?.id) return;
+
+			const userRef = doc(db, "users", session.user.id);
+			const userDoc = await getDoc(userRef);
+			const userData = userDoc.data();
+
+			if (userData?.secondLanguage) {
+				setLanguage(userData.secondLanguage as LanguagesSupported);
+				addUserLanguage(userData.secondLanguage as LanguagesSupported);
+			}
+		};
+
+		loadUserLanguages();
+	}, [session, setLanguage, addUserLanguage]);
 
 	const pathName = usePathname();
 	const isChatPage = pathName.includes("/chat");
 
-	return (
-		isChatPage && (
-			<div>
-				<Select
-					// onValueChange={(value: LanguagesSupported) =>
-					// 	setLanguage(value)
-					// }
-					onValueChange={(e: LanguagesSupported) =>
-						handleLanguageSelection(e)
-					}
-				>
-					<SelectTrigger className="w-[150px] text-black dark:text-white">
-						<SelectValue
-							placeholder={LanguagesSupportedMap[language]}
-							className=""
-						/>
-					</SelectTrigger>
+	if (!isChatPage) return null;
 
-					<SelectContent>
-						{subscription === undefined ? (
-							<LoadingSpinner />
-						) : (
-							<>
-								<ScrollArea className="h-72 w-48 rounded-md border">
-									{/* {availableLanguages.map((language) => (
+	return (
+		<div>
+			<Select
+				value={language}
+				onValueChange={(value: LanguagesSupported) =>
+					setLanguage(value)
+				}
+			>
+				<SelectTrigger className="w-[150px] text-black dark:text-white">
+					<SelectValue
+						placeholder={LanguagesSupportedMap[language]}
+					/>
+				</SelectTrigger>
+
+				<SelectContent>
+					{subscription === undefined ? (
+						<LoadingSpinner />
+					) : (
+						<ScrollArea className="h-72 w-48 rounded-md border">
+							{/* For all users, show English and their selected second language */}
+							{session?.user?.availableLanguages?.map((code) => (
+								<SelectItem
+									key={code}
+									value={code as LanguagesSupported}
+								>
+									{
+										LanguagesSupportedMap[
+											code as LanguagesSupported
+										]
+									}
+								</SelectItem>
+							))}
+
+							{/* For Pro users, show all other languages */}
+							{isPro &&
+								Object.entries(LanguagesSupportedMap)
+									.filter(
+										([code]) =>
+											!session?.user?.availableLanguages?.includes(
+												code
+											)
+									)
+									.map(([code, name]) => (
 										<SelectItem
-											key={language}
-											value={language}
+											key={code}
+											value={code as LanguagesSupported}
 										>
-											{LanguagesSupportedMap[language]}
-										</SelectItem>
-									))} */}
-									{getLanguages(isPro).map((language) => (
-										<SelectItem
-											key={language}
-											value={language}
-										>
-											{LanguagesSupportedMap[language]}
+											{name}
 										</SelectItem>
 									))}
-									{getNotSupportedLanguages(isPro).map(
-										(language) => (
-											<Link
-												href={"/register"}
-												key={language}
-												prefetch={false}
+
+							{/* For free users, show locked languages */}
+							{!isPro &&
+								Object.entries(LanguagesSupportedMap)
+									.filter(
+										([code]) =>
+											!session?.user?.availableLanguages?.includes(
+												code
+											)
+									)
+									.map(([code, name]) => (
+										<Link
+											href="/register"
+											key={code}
+											prefetch={false}
+										>
+											<SelectItem
+												key={code}
+												value={
+													code as LanguagesSupported
+												}
+												disabled
+												className="bg-gray-300/50 text-gray-500 dark:text-white py-2 my-1"
 											>
-												<SelectItem
-													key={language}
-													value={language}
-													disabled
-													className="bg-gray-300/50 text-gray-500 dark:text-white py-2 my-1"
-												>
-													{
-														LanguagesSupportedMap[
-															language
-														]
-													}{" "}
-													(PRO)
-												</SelectItem>
-											</Link>
-										)
-									)}
-								</ScrollArea>
-							</>
-						)}
-					</SelectContent>
-				</Select>
-			</div>
-		)
+												{name} (PRO)
+											</SelectItem>
+										</Link>
+									))}
+						</ScrollArea>
+					)}
+				</SelectContent>
+			</Select>
+		</div>
 	);
 }
 
